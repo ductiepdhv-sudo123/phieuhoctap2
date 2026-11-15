@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Em Khám Phá Phần Cứng Và Phần Mềm Máy Tính - Tin Học 4</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #FEFCE8; /* Nền vàng kem sáng dịu mắt */
+            color: #1E293B;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FEF9C3;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FACC15;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #EAB308;
+        }
+
+        /* Bảng màu chủ đạo */
+        .bg-primary-yellow { background-color: #FACC15; }
+        .text-primary-yellow { color: #EAB308; }
+        .border-primary-yellow { border-color: #FACC15; }
+
+        .bg-deep-blue { background-color: #1E3A8A; }
+        .text-deep-blue { color: #1E3A8A; }
+        .border-deep-blue { border-color: #1E3A8A; }
+
+        .bg-deep-pink { background-color: #DB2777; }
+        .text-deep-pink { color: #DB2777; }
+        .border-deep-pink { border-color: #DB2777; }
+
+        /* Hiệu ứng nút bấm nổi 3D thân thiện trẻ em */
+        .btn-3d {
+            transition: all 0.15s ease;
+            box-shadow: 0 5px 0 rgba(0, 0, 0, 0.2);
+        }
+        .btn-3d:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        /* Viền kết quả chấm bài: Bắt buộc chỉ Xanh hoặc Đỏ */
+        .card-neutral {
+            border: 4px solid #E2E8F0;
+            background-color: #FFFFFF;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-correct {
+            border: 5px solid #16A34A !important;
+            background-color: #F0FDF4 !important;
+            box-shadow: 0 10px 25px -5px rgba(22, 163, 74, 0.25) !important;
+        }
+        .card-incorrect {
+            border: 5px solid #DC2626 !important;
+            background-color: #FEF2F2 !important;
+            box-shadow: 0 10px 25px -5px rgba(220, 38, 38, 0.25) !important;
+        }
+
+        /* Kéo thả & Tương tác */
+        .draggable-card {
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            touch-action: manipulation;
+        }
+        .draggable-card:active {
+            cursor: grabbing;
+        }
+        .draggable-card.selected-item {
+            ring: 4px solid #DB2777;
+            border-color: #DB2777;
+            background-color: #FDF2F8;
+            transform: scale(1.04);
+            box-shadow: 0 8px 16px rgba(219, 39, 119, 0.25);
+        }
+        .drop-zone {
+            transition: background-color 0.2s, border-color 0.2s;
+            min-height: 160px;
+        }
+        .drop-zone.drag-over {
+            background-color: #FEF08A;
+            border-color: #DB2777;
+        }
+
+        /* Nối cột */
+        .match-node {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .match-node.active-node {
+            border-color: #DB2777;
+            background-color: #FDF2F8;
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(219, 39, 119, 0.2);
+        }
+        .match-node.connected-node {
+            border-color: #1E3A8A;
+            background-color: #EFF6FF;
+        }
+
+        /* Điền từ khóa Câu 5 */
+        .blank-slot {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+            height: 38px;
+            padding: 0 12px;
+            margin: 0 4px;
+            border-bottom: 3px dashed #1E3A8A;
+            background-color: #EFF6FF;
+            border-radius: 8px;
+            font-weight: 800;
+            color: #1E3A8A;
+            vertical-align: middle;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .blank-slot:hover, .blank-slot.drag-over {
+            background-color: #FEF08A;
+            border-color: #DB2777;
+        }
+        .blank-slot.filled {
+            border-style: solid;
+            background-color: #DBEAFE;
+        }
+
+        /* Animation nhẹ */
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-bounce-slow {
+            animation: bounce-slow 2.5s infinite ease-in-out;
+        }
+
+        @keyframes pulse-urgent {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .timer-urgent {
+            animation: pulse-urgent 1s infinite;
+            background-color: #DC2626 !important;
+            color: #FFFFFF !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- ==================== MÀN HÌNH BẮT ĐẦU ==================== -->
+    <div id="welcome-screen" class="flex-1 flex items-center justify-center p-4 sm:p-6">
+        <div class="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border-4 border-primary-yellow overflow-hidden">
+            <!-- Header Banner -->
+            <div class="bg-deep-blue text-white p-6 sm:p-8 text-center relative overflow-hidden">
+                <div class="inline-flex items-center gap-2 bg-primary-yellow text-deep-blue font-extrabold px-4 py-1.5 rounded-full text-sm sm:text-base mb-3 shadow">
+                    <span>💻 Môn Tin học – Lớp 4</span>
+                    <span>•</span>
+                    <span>Chủ đề 1: Máy tính và em</span>
+                </div>
+                <h1 class="text-2xl sm:text-4xl font-black text-primary-yellow tracking-wide leading-tight drop-shadow">
+                    EM KHÁM PHÁ PHẦN CỨNG VÀ PHẦN MỀM MÁY TÍNH
+                </h1>
+                <p class="mt-2 text-blue-100 font-semibold text-base sm:text-lg">
+                    Bài 1: Phần cứng và phần mềm máy tính
+                </p>
+            </div>
+
+            <!-- Body Content -->
+            <div class="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                <!-- Cột trái: Thông tin & Minh họa -->
+                <div class="md:col-span-6 space-y-4">
+                    <div class="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-4 space-y-3">
+                        <div class="flex items-center gap-3">
+                            <span class="w-10 h-10 rounded-xl bg-deep-pink text-white flex items-center justify-center text-xl font-bold shadow">⏱️</span>
+                            <div>
+                                <p class="text-xs text-slate-500 font-bold uppercase">Thời gian làm bài</p>
+                                <p class="text-lg font-extrabold text-deep-blue">15 phút</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-10 h-10 rounded-xl bg-primary-yellow text-deep-blue flex items-center justify-center text-xl font-bold shadow">🏆</span>
+                            <div>
+                                <p class="text-xs text-slate-500 font-bold uppercase">Tổng điểm & Số câu</p>
+                                <p class="text-lg font-extrabold text-deep-blue">10 điểm (5 câu hỏi tương tác)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 text-sm text-slate-700 leading-relaxed">
+                        <p class="font-extrabold text-deep-blue mb-1 flex items-center gap-1.5">
+                            <span>📌</span> Hướng dẫn cho học sinh:
+                        </p>
+                        <p>
+                            Em hãy đọc kĩ yêu cầu và thực hiện lần lượt 5 câu hỏi bằng cách <strong>kéo – thả, nối, chọn đáp án, xác định đúng/sai và điền từ khóa vào đoạn văn</strong>. Sau khi hoàn thành, nhấn nút <strong>"CHẤM ĐIỂM"</strong> để xem kết quả.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Cột phải: Form nhập thông tin -->
+                <div class="md:col-span-6 bg-slate-50 p-6 rounded-2xl border-2 border-slate-200 space-y-5">
+                    <h2 class="text-xl font-extrabold text-deep-blue text-center flex items-center justify-center gap-2">
+                        <span class="text-deep-pink">✏️</span> THÔNG TIN HỌC SINH
+                    </h2>
+
+                    <div>
+                        <label for="student-name" class="block text-sm font-extrabold text-deep-blue mb-1.5 uppercase">
+                            1. Họ và tên <span class="text-deep-pink">*</span>
+                        </label>
+                        <input type="text" id="student-name" placeholder="Ví dụ: Nguyễn Văn An"
+                            class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-300 focus:border-deep-blue focus:ring-4 focus:ring-blue-100 outline-none font-bold text-slate-800 text-base transition">
+                    </div>
+
+                    <div>
+                        <label for="student-class" class="block text-sm font-extrabold text-deep-blue mb-1.5 uppercase">
+                            2. Lớp <span class="text-deep-pink">*</span>
+                        </label>
+                        <input type="text" id="student-class" placeholder="Ví dụ: 4A"
+                            class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-300 focus:border-deep-blue focus:ring-4 focus:ring-blue-100 outline-none font-bold text-slate-800 text-base transition">
+                    </div>
+
+                    <!-- Thông báo lỗi nếu thiếu thông tin -->
+                    <div id="welcome-error" class="hidden bg-red-100 border-2 border-red-400 text-red-700 px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-2">
+                        <span>⚠️</span>
+                        <span id="welcome-error-text">Em hãy nhập đầy đủ Họ và tên và Lớp trước khi bắt đầu nhé!</span>
+                    </div>
+
+                    <button id="btn-start" type="button"
+                        class="w-full py-4 px-6 bg-deep-pink hover:bg-pink-700 text-white font-black text-lg sm:text-xl rounded-2xl btn-3d flex items-center justify-center gap-2 cursor-pointer">
+                        <span>🚀 BẮT ĐẦU LÀM BÀI</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== GIAO DIỆN PHIẾU HỌC TẬP ==================== -->
+    <div id="worksheet-screen" class="hidden flex-1 flex flex-col">
+        <!-- Thanh điều hướng cố định trên cùng -->
+        <header class="sticky top-0 z-40 bg-deep-blue text-white shadow-lg border-b-4 border-primary-yellow">
+            <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+                <!-- Thông tin học sinh -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-primary-yellow text-deep-blue flex items-center justify-center font-black text-lg shadow">
+                        🎓
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-primary-yellow text-sm sm:text-base leading-tight">
+                            EM KHÁM PHÁ PHẦN CỨNG VÀ PHẦN MỀM MÁY TÍNH
+                        </h1>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm font-bold text-blue-100 mt-0.5">
+                            <span>Học sinh: <strong id="display-name" class="text-white">...</strong></span>
+                            <span>Lớp: <strong id="display-class" class="text-white">...</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Đồng hồ đếm ngược -->
+                <div id="timer-box" class="flex items-center gap-2 bg-primary-yellow text-deep-blue px-4 py-2 rounded-2xl font-black text-base sm:text-lg shadow-md">
+                    <span>⏱️</span>
+                    <span id="timer-display">15:00</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Nội dung chính phiếu học tập -->
+        <main class="max-w-6xl w-full mx-auto px-4 py-6 sm:py-8 space-y-8 flex-1">
+
+            <!-- Bảng Kết Quả Học Tập (Ẩn cho đến khi chấm điểm) -->
+            <section id="result-dashboard" class="hidden bg-white rounded-3xl border-4 border-primary-yellow shadow-2xl overflow-hidden">
+                <div class="bg-deep-blue text-white p-6 text-center">
+                    <div class="inline-block bg-deep-pink text-white text-xs sm:text-sm font-black px-4 py-1 rounded-full uppercase tracking-wider mb-2">
+                        Kết quả phiếu học tập
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-primary-yellow">
+                        EM KHÁM PHÁ PHẦN CỨNG VÀ PHẦN MỀM MÁY TÍNH
+                    </h2>
+                </div>
+
+                <div class="p-6 sm:p-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                        <!-- Thông tin học sinh -->
+                        <div class="bg-slate-50 rounded-2xl p-5 border-2 border-slate-200 space-y-2.5">
+                            <p class="text-sm font-bold text-slate-500">Họ và tên học sinh:</p>
+                            <p id="res-name" class="text-lg font-black text-deep-blue">---</p>
+                            <div class="border-t border-slate-200 pt-2 flex justify-between">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500">Lớp:</p>
+                                    <p id="res-class" class="text-base font-extrabold text-deep-blue">---</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs font-bold text-slate-500">Thời gian hoàn thành:</p>
+                                    <p id="res-time" class="text-base font-extrabold text-deep-pink">---</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Điểm số & Số câu đúng -->
+                        <div class="bg-yellow-50 rounded-2xl p-5 border-2 border-primary-yellow text-center space-y-2">
+                            <p class="text-sm font-extrabold text-deep-blue uppercase">Tổng điểm đạt được</p>
+                            <div class="text-4xl sm:text-5xl font-black text-deep-pink">
+                                <span id="res-score">0</span><span class="text-2xl text-slate-500">/10</span>
+                            </div>
+                            <p class="text-sm font-extrabold text-slate-700 bg-white inline-block px-4 py-1 rounded-full border border-yellow-300">
+                                Số câu đúng hoàn toàn: <span id="res-correct-count" class="text-green-600 font-black">0</span>/5 câu
+                            </p>
+                        </div>
+
+                        <!-- Nhận xét tự động -->
+                        <div class="bg-blue-50 rounded-2xl p-5 border-2 border-blue-200 text-center flex flex-col items-center justify-center space-y-2">
+                            <div id="res-trophy" class="text-5xl animate-bounce-slow">🏆</div>
+                            <p class="text-xs font-bold text-slate-500 uppercase">Nhận xét của thầy cô</p>
+                            <p id="res-feedback" class="text-2xl sm:text-3xl font-black text-deep-blue">Xuất sắc!</p>
+                        </div>
+                    </div>
+
+                    <!-- Các nút hành động sau chấm điểm -->
+                    <div class="mt-6 pt-6 border-t-2 border-slate-100 flex flex-col items-center gap-4">
+                        <!-- Trạng thái lưu dữ liệu Google Sheet -->
+                        <div class="flex flex-wrap items-center justify-center gap-2">
+                            <div id="sheets-sync-status" class="hidden px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2"></div>
+                            <button id="btn-resync-sheets" type="button" onclick="retrySendToGoogleSheet()"
+                                class="hidden px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-extrabold rounded-xl shadow cursor-pointer">
+                                🔁 Thử lưu lại
+                            </button>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-center gap-4">
+                            <button id="btn-review" type="button"
+                                class="px-6 py-3.5 bg-deep-blue hover:bg-blue-800 text-white font-extrabold rounded-2xl btn-3d flex items-center gap-2 cursor-pointer">
+                                <span>🔍 XEM LẠI BÀI LÀM</span>
+                            </button>
+                            <button id="btn-retry" type="button"
+                                class="px-6 py-3.5 bg-deep-pink hover:bg-pink-700 text-white font-extrabold rounded-2xl btn-3d flex items-center gap-2 cursor-pointer">
+                                <span>🔄 LÀM LẠI BÀI</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Hướng dẫn nhanh đầu phiếu -->
+            <div class="bg-white rounded-2xl p-4 sm:p-5 border-2 border-primary-yellow shadow-sm flex items-start gap-3">
+                <span class="text-2xl">💡</span>
+                <p class="text-sm sm:text-base text-slate-700 font-semibold">
+                    Em hãy đọc kĩ yêu cầu và thực hiện lần lượt 5 câu hỏi bằng cách kéo – thả, nối, chọn đáp án, xác định đúng/sai và điền từ khóa vào đoạn văn. Sau khi hoàn thành, nhấn nút <strong class="text-deep-pink">"CHẤM ĐIỂM"</strong> ở cuối trang để xem kết quả.
+                </p>
+            </div>
+
+            <!-- ==================== CÂU 1: KÉO - THẢ (2 ĐIỂM) ==================== -->
+            <article id="q1-card" class="card-neutral rounded-3xl p-5 sm:p-7 shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b-2 border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-deep-blue text-primary-yellow font-black px-4 py-1.5 rounded-xl text-base sm:text-lg">
+                            CÂU 1 (2 ĐIỂM)
+                        </span>
+                        <h3 class="text-lg sm:text-xl font-black text-deep-pink uppercase">
+                            EM PHÂN LOẠI THẬT GIỎI!
+                        </h3>
+                    </div>
+                    <span id="q1-score-badge" class="hidden px-3 py-1 rounded-full text-sm font-black"></span>
+                </div>
+
+                <p class="text-base sm:text-lg font-bold text-slate-800 mb-2">
+                    Em hãy kéo các thiết bị và phần mềm vào đúng nhóm của chúng.
+                </p>
+                <p class="text-xs sm:text-sm text-slate-500 font-semibold mb-4">
+                    👉 Mẹo: Em có thể kéo thả thẻ vào ô nhóm, hoặc chạm chọn thẻ rồi chạm vào ô nhóm muốn đặt.
+                </p>
+
+                <!-- Kho thẻ kéo ban đầu -->
+                <div class="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-4 mb-5">
+                    <p class="text-xs font-extrabold text-slate-500 uppercase mb-3">Danh sách thiết bị và phần mềm:</p>
+                    <div id="q1-pool" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 min-h-[90px]"
+                         ondragover="allowDrop(event)" ondrop="dropToQ1Pool(event)">
+                        <!-- Các thẻ được render bằng JS -->
+                    </div>
+                </div>
+
+                <!-- Hai khu vực thả -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Khu vực Phần cứng -->
+                    <div class="bg-blue-50/70 rounded-2xl border-3 border-deep-blue p-4 flex flex-col">
+                        <div class="bg-deep-blue text-white font-black text-center py-2.5 rounded-xl mb-3 text-base sm:text-lg shadow-sm flex items-center justify-center gap-2">
+                            <span>🖥️</span> PHẦN CỨNG
+                        </div>
+                        <div id="q1-zone-hardware" data-zone="hardware"
+                             class="drop-zone flex-1 bg-white rounded-xl border-2 border-dashed border-blue-300 p-3 grid grid-cols-2 gap-2.5 content-start"
+                             ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="dropToQ1Zone(event, 'hardware')">
+                        </div>
+                    </div>
+
+                    <!-- Khu vực Phần mềm -->
+                    <div class="bg-pink-50/70 rounded-2xl border-3 border-deep-pink p-4 flex flex-col">
+                        <div class="bg-deep-pink text-white font-black text-center py-2.5 rounded-xl mb-3 text-base sm:text-lg shadow-sm flex items-center justify-center gap-2">
+                            <span>💿</span> PHẦN MỀM
+                        </div>
+                        <div id="q1-zone-software" data-zone="software"
+                             class="drop-zone flex-1 bg-white rounded-xl border-2 border-dashed border-pink-300 p-3 grid grid-cols-2 gap-2.5 content-start"
+                             ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="dropToQ1Zone(event, 'software')">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Khung hiển thị đáp án đúng sau khi chấm -->
+                <div id="q1-feedback" class="hidden mt-5 p-4 rounded-2xl bg-slate-100 border-2 border-slate-300 text-sm sm:text-base"></div>
+            </article>
+
+            <!-- ==================== CÂU 2: NỐI (2 ĐIỂM) ==================== -->
+            <article id="q2-card" class="card-neutral rounded-3xl p-5 sm:p-7 shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b-2 border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-deep-blue text-primary-yellow font-black px-4 py-1.5 rounded-xl text-base sm:text-lg">
+                            CÂU 2 (2 ĐIỂM)
+                        </span>
+                        <h3 class="text-lg sm:text-xl font-black text-deep-pink uppercase">
+                            KẾT NỐI KIẾN THỨC!
+                        </h3>
+                    </div>
+                    <span id="q2-score-badge" class="hidden px-3 py-1 rounded-full text-sm font-black"></span>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <p class="text-base sm:text-lg font-bold text-slate-800">
+                        Em hãy nối mỗi nội dung ở cột A với mô tả phù hợp ở cột B.
+                    </p>
+                    <button id="btn-clear-q2" type="button"
+                        class="text-xs sm:text-sm font-extrabold text-deep-pink bg-pink-50 hover:bg-pink-100 border border-pink-300 px-3 py-1.5 rounded-xl transition cursor-pointer">
+                        🧹 Xóa tất cả đường nối
+                    </button>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-500 font-semibold mb-4">
+                    👉 Cách làm: Nhấn chọn 1 ô ở <strong>Cột A</strong> rồi nhấn chọn 1 ô tương ứng ở <strong>Cột B</strong> để nối. Nhấn vào ô đã nối nếu muốn nối lại.
+                </p>
+
+                <!-- Khu vực nối 2 cột với SVG ở giữa -->
+                <div id="q2-container" class="relative grid grid-cols-12 gap-2 sm:gap-4 items-stretch">
+                    <!-- Cột A -->
+                    <div class="col-span-5 sm:col-span-4 space-y-3 z-10 flex flex-col justify-between">
+                        <div class="bg-deep-blue text-white font-black text-center py-2 rounded-xl text-sm sm:text-base">CỘT A</div>
+                        <div id="q2-col-a" class="space-y-3 flex-1 flex flex-col justify-around"></div>
+                    </div>
+
+                    <!-- Vùng vẽ đường nối SVG -->
+                    <div class="col-span-2 sm:col-span-4 relative flex items-center justify-center">
+                        <svg id="q2-svg" class="w-full h-full pointer-events-none overflow-visible"></svg>
+                    </div>
+
+                    <!-- Cột B -->
+                    <div class="col-span-5 sm:col-span-4 space-y-3 z-10 flex flex-col justify-between">
+                        <div class="bg-deep-pink text-white font-black text-center py-2 rounded-xl text-sm sm:text-base">CỘT B</div>
+                        <div id="q2-col-b" class="space-y-3 flex-1 flex flex-col justify-around"></div>
+                    </div>
+                </div>
+
+                <!-- Khung đáp án đúng sau khi chấm -->
+                <div id="q2-feedback" class="hidden mt-5 p-4 rounded-2xl bg-slate-100 border-2 border-slate-300 text-sm sm:text-base"></div>
+            </article>
+
+            <!-- ==================== CÂU 3: TRẮC NGHIỆM (2 ĐIỂM) ==================== -->
+            <article id="q3-card" class="card-neutral rounded-3xl p-5 sm:p-7 shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b-2 border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-deep-blue text-primary-yellow font-black px-4 py-1.5 rounded-xl text-base sm:text-lg">
+                            CÂU 3 (2 ĐIỂM)
+                        </span>
+                        <h3 class="text-lg sm:text-xl font-black text-deep-pink uppercase">
+                            AI CHỌN ĐÚNG NÀO?
+                        </h3>
+                    </div>
+                    <span id="q3-score-badge" class="hidden px-3 py-1 rounded-full text-sm font-black"></span>
+                </div>
+
+                <p class="text-base sm:text-xl font-extrabold text-slate-800 mb-5">
+                    Phát biểu nào sau đây là <span class="text-deep-pink underline">sai</span>?
+                </p>
+
+                <div id="q3-options" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Các lựa chọn A, B, C, D render bằng JS -->
+                </div>
+
+                <!-- Khung đáp án & giải thích sau khi chấm -->
+                <div id="q3-feedback" class="hidden mt-5 p-4 rounded-2xl bg-slate-100 border-2 border-slate-300 text-sm sm:text-base"></div>
+            </article>
+
+            <!-- ==================== CÂU 4: ĐÚNG / SAI (2 ĐIỂM) ==================== -->
+            <article id="q4-card" class="card-neutral rounded-3xl p-5 sm:p-7 shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b-2 border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-deep-blue text-primary-yellow font-black px-4 py-1.5 rounded-xl text-base sm:text-lg">
+                            CÂU 4 (2 ĐIỂM)
+                        </span>
+                        <h3 class="text-lg sm:text-xl font-black text-deep-pink uppercase">
+                            EM LÀ THÁM TỬ TIN HỌC!
+                        </h3>
+                    </div>
+                    <span id="q4-score-badge" class="hidden px-3 py-1 rounded-full text-sm font-black"></span>
+                </div>
+
+                <p class="text-base sm:text-lg font-bold text-slate-800 mb-5">
+                    Em hãy xác định các phát biểu sau là đúng hay sai.
+                </p>
+
+                <div id="q4-statements" class="space-y-4">
+                    <!-- 4 phát biểu render bằng JS -->
+                </div>
+
+                <!-- Khung đáp án đúng sau khi chấm -->
+                <div id="q4-feedback" class="hidden mt-5 p-4 rounded-2xl bg-slate-100 border-2 border-slate-300 text-sm sm:text-base"></div>
+            </article>
+
+            <!-- ==================== CÂU 5: ĐỌC HIỂU – ĐIỀN TỪ KHÓA (2 ĐIỂM) ==================== -->
+            <article id="q5-card" class="card-neutral rounded-3xl p-5 sm:p-7 shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b-2 border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-deep-blue text-primary-yellow font-black px-4 py-1.5 rounded-xl text-base sm:text-lg">
+                            CÂU 5 (2 ĐIỂM)
+                        </span>
+                        <h3 class="text-lg sm:text-xl font-black text-deep-pink uppercase">
+                            EM ĐỌC HIỂU THẬT GIỎI!
+                        </h3>
+                    </div>
+                    <span id="q5-score-badge" class="hidden px-3 py-1 rounded-full text-sm font-black"></span>
+                </div>
+
+                <p class="text-base sm:text-lg font-bold text-slate-800 mb-2">
+                    Em hãy đọc đoạn văn sau, sau đó chọn từ khóa thích hợp trong ngân hàng từ để điền vào mỗi chỗ trống.
+                </p>
+                <p class="text-xs sm:text-sm text-slate-500 font-semibold mb-4">
+                    👉 Cách làm: Kéo thả thẻ từ khóa vào ô trống (1), (2), (3), (4) hoặc chạm chọn thẻ từ khóa rồi chạm vào ô trống. Nhấn vào ô trống đã điền để trả từ khóa về ngân hàng từ.
+                </p>
+
+                <!-- Ngân hàng từ khóa -->
+                <div class="bg-yellow-50 border-2 border-primary-yellow rounded-2xl p-4 mb-5">
+                    <p class="text-xs font-extrabold text-deep-blue uppercase mb-3 flex items-center gap-1.5">
+                        <span>🏷️</span> Ngân hàng từ khóa:
+                    </p>
+                    <div id="q5-word-bank" class="flex flex-wrap gap-3 min-h-[48px]">
+                        <!-- 4 thẻ từ khóa render bằng JS -->
+                    </div>
+                </div>
+
+                <!-- Khung đoạn văn đọc hiểu -->
+                <div class="bg-blue-50/60 border-2 border-blue-200 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row gap-4 items-start">
+                    <!-- Biểu tượng sách đọc hiểu -->
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-primary-yellow text-deep-blue flex items-center justify-center shrink-0 shadow-md border-2 border-yellow-400">
+                        <svg class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                        </svg>
+                    </div>
+
+                    <!-- Nội dung đoạn văn -->
+                    <div class="text-base sm:text-xl leading-loose font-semibold text-slate-800">
+                        Máy tính gồm phần cứng và phần mềm. Phần cứng là những bộ phận có
+                        <span class="inline-flex items-center"><strong class="text-deep-pink mr-1">(1)</strong><span id="blank-1" data-slot="1" class="blank-slot" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="dropToQ5Slot(event, 1)" onclick="handleQ5SlotClick(1)">______</span></span>
+                        mà em có thể nhận ra, chẳng hạn như bàn phím, chuột và màn hình. Phần mềm không có
+                        <span class="inline-flex items-center"><strong class="text-deep-pink mr-1">(2)</strong><span id="blank-2" data-slot="2" class="blank-slot" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="dropToQ5Slot(event, 2)" onclick="handleQ5SlotClick(2)">______</span></span>
+                        như phần cứng. Các máy tính có thể được cài đặt những
+                        <span class="inline-flex items-center"><strong class="text-deep-pink mr-1">(3)</strong><span id="blank-3" data-slot="3" class="blank-slot" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="dropToQ5Slot(event, 3)" onclick="handleQ5SlotClick(3)">______</span></span>
+                        khác nhau. Khi muốn sử dụng thêm trò chơi trên máy tính, em có thể nhờ người lớn
+                        <span class="inline-flex items-center"><strong class="text-deep-pink mr-1">(4)</strong><span id="blank-4" data-slot="4" class="blank-slot" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="dropToQ5Slot(event, 4)" onclick="handleQ5SlotClick(4)">______</span></span>
+                        trò chơi phù hợp.
+                    </div>
+                </div>
+
+                <!-- Khung đáp án đúng sau khi chấm -->
+                <div id="q5-feedback" class="hidden mt-5 p-4 rounded-2xl bg-slate-100 border-2 border-slate-300 text-sm sm:text-base"></div>
+            </article>
+
+            <!-- ==================== NÚT CHẤM ĐIỂM CUỐI PHIẾU ==================== -->
+            <div id="submit-section" class="py-6 text-center">
+                <button id="btn-submit" type="button"
+                    class="w-full sm:w-auto px-10 py-5 bg-primary-yellow hover:bg-yellow-300 text-deep-blue border-4 border-deep-blue font-black text-xl sm:text-2xl rounded-3xl btn-3d inline-flex items-center justify-center gap-3 cursor-pointer shadow-xl">
+                    <span>🏆 CHẤM ĐIỂM</span>
+                </button>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-deep-blue text-blue-200 text-center py-4 text-xs sm:text-sm font-semibold mt-8">
+            Phiếu học tập tương tác Tin học Lớp 4 • Chủ đề 1: Máy tính và em • Bài 1: Phần cứng và phần mềm máy tính
+        </footer>
+    </div>
+
+    <!-- Modal xác nhận làm lại bài (Không dùng confirm() của trình duyệt) -->
+    <div id="retry-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border-4 border-primary-yellow max-w-md w-full p-6 text-center shadow-2xl space-y-5">
+            <div class="text-5xl">🔄</div>
+            <h3 class="text-2xl font-black text-deep-blue">Xác nhận làm lại bài?</h3>
+            <p class="text-slate-600 font-semibold text-base">
+                Toàn bộ câu trả lời và điểm số cũ sẽ được xóa để em bắt đầu lượt làm bài mới với thời gian 15 phút.
+            </p>
+            <div class="flex gap-3 justify-center pt-2">
+                <button id="btn-cancel-retry" type="button"
+                    class="flex-1 py-3 px-4 bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold rounded-xl cursor-pointer">
+                    Hủy bỏ
+                </button>
+                <button id="btn-confirm-retry" type="button"
+                    class="flex-1 py-3 px-4 bg-deep-pink hover:bg-pink-700 text-white font-extrabold rounded-xl btn-3d cursor-pointer">
+                    Đồng ý làm lại
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal thông báo hết giờ -->
+    <div id="timeout-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border-4 border-red-500 max-w-md w-full p-6 text-center shadow-2xl space-y-4">
+            <div class="text-5xl">⏰</div>
+            <h3 class="text-2xl font-black text-red-600">Đã hết thời gian 15 phút!</h3>
+            <p class="text-slate-700 font-semibold text-base">
+                Hệ thống đã tự động nộp bài và chấm điểm cho em. Hãy xem kết quả ngay nhé!
+            </p>
+            <button id="btn-close-timeout" type="button"
+                class="w-full py-3.5 px-6 bg-deep-blue text-white font-extrabold rounded-xl btn-3d cursor-pointer">
+                Xem kết quả ngay
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /* =========================================================================
+           CẤU HÌNH KẾT NỐI GOOGLE SHEET (GOOGLE APPS SCRIPT WEBHOOK)
+        ========================================================================= */
+        // Thầy/Cô dán đường link Web App URL từ Google Apps Script vào giữa dấu nháy kép bên dưới:
+        const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbymlUPkyfVD1j1croaVbA3oDJ9wbJpYtsndQdyoc77inx3G8Mz6LRQvdsJ0znum8YYF/exec";
+
+        /* =========================================================================
+           DỮ LIỆU CÂU HỎI & ĐÁP ÁN CHÍNH XÁC THEO ĐỀ BÀI
+        ========================================================================= */
+
+        // Minh họa SVG chuẩn xác, rõ nét cho học sinh lớp 4
+        const ICONS = {
+            keyboard: `<svg class="w-10 h-10 text-deep-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2" fill="#EFF6FF"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M10 14h4"/></svg>`,
+            mouse: `<svg class="w-10 h-10 text-deep-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="6" fill="#EFF6FF"/><path d="M12 7v4"/></svg>`,
+            monitor: `<svg class="w-10 h-10 text-deep-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" fill="#EFF6FF"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
+            tower: `<svg class="w-10 h-10 text-deep-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" fill="#EFF6FF"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><circle cx="12" cy="17" r="1.5" fill="#DB2777"/></svg>`,
+            game: `<svg class="w-10 h-10 text-deep-pink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="4" fill="#FDF2F8"/><path d="M6 12h4M8 10v4"/><circle cx="15" cy="11" r="1" fill="#1E3A8A"/><circle cx="17" cy="13" r="1" fill="#1E3A8A"/></svg>`,
+            presentation: `<svg class="w-10 h-10 text-deep-pink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3" fill="#FDF2F8"/><path d="m7 21 5-5 5 5"/><path d="M8 10l3-3 2 2 3-3"/></svg>`
+        };
+
+        // Câu 1: Kéo - thả
+        const Q1_ITEMS = [
+            { id: 'item-1', label: 'Bàn phím', icon: ICONS.keyboard, correctZone: 'hardware' },
+            { id: 'item-2', label: 'Chuột', icon: ICONS.mouse, correctZone: 'hardware' },
+            { id: 'item-3', label: 'Màn hình', icon: ICONS.monitor, correctZone: 'hardware' },
+            { id: 'item-4', label: 'Thân máy', icon: ICONS.tower, correctZone: 'hardware' },
+            { id: 'item-5', label: 'Trò chơi', icon: ICONS.game, correctZone: 'software' },
+            { id: 'item-6', label: 'Phần mềm trình chiếu', icon: ICONS.presentation, correctZone: 'software' }
+        ];
+
+        // Câu 2: Nối
+        const Q2_COL_A = [
+            { id: '1', text: '1. Phần cứng' },
+            { id: '2', text: '2. Phần mềm' },
+            { id: '3', text: '3. Màn hình' },
+            { id: '4', text: '4. Ứng dụng điện thoại' }
+        ];
+        const Q2_COL_B = [
+            { id: 'A', text: 'A. Có thể thêm hoặc xóa trên điện thoại.' },
+            { id: 'B', text: 'B. Có hình dạng, có thể nhận ra.' },
+            { id: 'C', text: 'C. Hiển thị kết quả hoạt động.' },
+            { id: 'D', text: 'D. Không có hình dạng như phần cứng.' }
+        ];
+        const Q2_ANSWERS = { '1': 'B', '2': 'D', '3': 'C', '4': 'A' };
+
+        // Câu 3: Trắc nghiệm
+        const Q3_OPTIONS = [
+            { key: 'A', text: 'A. Trò chơi trên máy tính là phần mềm.' },
+            { key: 'B', text: 'B. Thân máy của máy tính là phần cứng.' },
+            { key: 'C', text: 'C. Chương trình luyện tập gõ bàn phím là phần cứng.' },
+            { key: 'D', text: 'D. Ứng dụng xem video trên máy tính là phần mềm.' }
+        ];
+        const Q3_CORRECT = 'C';
+        const Q3_EXPLANATION = 'Chương trình luyện tập gõ bàn phím là phần mềm, không phải phần cứng.';
+
+        // Câu 4: Đúng / Sai
+        const Q4_STATEMENTS = [
+            { id: 1, text: 'Chuột và bàn phím là phần cứng.', correct: true },
+            { id: 2, text: 'Phần mềm máy tính có hình dạng mà em có thể nhìn thấy trực tiếp như phần cứng.', correct: false },
+            { id: 3, text: 'Có thể bổ sung hoặc xóa bớt phần mềm trên điện thoại thông minh.', correct: true },
+            { id: 4, text: 'Loa và ổ đĩa là phần mềm máy tính.', correct: false }
+        ];
+
+        // Câu 5: Đọc hiểu - Điền từ khóa
+        const Q5_WORDS = [
+            { id: 'w1', text: 'hình dạng' },
+            { id: 'w2', text: 'phần mềm' },
+            { id: 'w3', text: 'cài đặt' },
+            { id: 'w4', text: 'hình dạng' }
+        ];
+        const Q5_ANSWERS = {
+            1: 'hình dạng',
+            2: 'hình dạng',
+            3: 'phần mềm',
+            4: 'cài đặt'
+        };
+
+        /* =========================================================================
+           TRẠNG THÁI ỨNG DỤNG (STATE)
+        ========================================================================= */
+        let state = {
+            studentName: '',
+            studentClass: '',
+            isSubmitted: false,
+            timerSeconds: 15 * 60,
+            timerInterval: null,
+            startTimeTimestamp: null,
+            lastPayload: null,
+            // Trạng thái Câu 1: { 'item-1': 'pool' | 'hardware' | 'software' }
+            q1Placements: {},
+            q1SelectedCardId: null,
+
+            // Trạng thái Câu 2: { '1': 'B', ... }
+            q2Connections: {},
+            q2SelectedA: null,
+
+            // Trạng thái Câu 3: 'A' | 'B' | 'C' | 'D' | null
+            q3Selected: null,
+
+            // Trạng thái Câu 4: { 1: true | false | null, ... }
+            q4Answers: { 1: null, 2: null, 3: null, 4: null },
+
+            // Trạng thái Câu 5: slots { 1: wordId | null, ... }
+            q5Slots: { 1: null, 2: null, 3: null, 4: null },
+            q5SelectedWordId: null
+        };
+
+        /* =========================================================================
+           KHỞI TẠO & ĐIỀU HƯỚNG MÀN HÌNH
+        ========================================================================= */
+        document.getElementById('btn-start').addEventListener('click', () => {
+            const nameInput = document.getElementById('student-name').value.trim();
+            const classInput = document.getElementById('student-class').value.trim();
+            const errorBox = document.getElementById('welcome-error');
+            const errorText = document.getElementById('welcome-error-text');
+
+            if (!nameInput && !classInput) {
+                errorText.textContent = 'Em hãy nhập đầy đủ Họ và tên và Lớp trước khi bắt đầu nhé!';
+                errorBox.classList.remove('hidden');
+                return;
+            }
+            if (!nameInput) {
+                errorText.textContent = 'Em chưa nhập Họ và tên. Hãy điền họ tên để bắt đầu nhé!';
+                errorBox.classList.remove('hidden');
+                return;
+            }
+            if (!classInput) {
+                errorText.textContent = 'Em chưa nhập Lớp. Hãy điền tên lớp của em nhé!';
+                errorBox.classList.remove('hidden');
+                return;
+            }
+
+            errorBox.classList.add('hidden');
+            state.studentName = nameInput;
+            state.studentClass = classInput;
+
+            document.getElementById('display-name').textContent = state.studentName;
+            document.getElementById('display-class').textContent = state.studentClass;
+
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('worksheet-screen').classList.remove('hidden');
+
+            initWorksheet();
+        });
+
+        function initWorksheet() {
+            state.isSubmitted = false;
+            state.timerSeconds = 15 * 60;
+            state.startTimeTimestamp = Date.now();
+
+            // Reset dữ liệu từng câu
+            Q1_ITEMS.forEach(item => state.q1Placements[item.id] = 'pool');
+            state.q1SelectedCardId = null;
+
+            state.q2Connections = {};
+            state.q2SelectedA = null;
+
+            state.q3Selected = null;
+            state.q4Answers = { 1: null, 2: null, 3: null, 4: null };
+
+            state.q5Slots = { 1: null, 2: null, 3: null, 4: null };
+            state.q5SelectedWordId = null;
+
+            // Reset UI giao diện
+            document.getElementById('result-dashboard').classList.add('hidden');
+            document.getElementById('sheets-sync-status').classList.add('hidden');
+            document.getElementById('btn-resync-sheets').classList.add('hidden');
+            document.getElementById('submit-section').classList.remove('hidden');
+            document.getElementById('timer-box').classList.remove('timer-urgent');
+
+            ['q1', 'q2', 'q3', 'q4', 'q5'].forEach(q => {
+                const card = document.getElementById(`${q}-card`);
+                card.classList.remove('card-correct', 'card-incorrect');
+                card.classList.add('card-neutral');
+                document.getElementById(`${q}-score-badge`).classList.add('hidden');
+                document.getElementById(`${q}-feedback`).classList.add('hidden');
+            });
+
+            renderQ1();
+            renderQ2();
+            renderQ3();
+            renderQ4();
+            renderQ5();
+
+            startTimer();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* =========================================================================
+           ĐỒNG HỒ ĐẾM NGƯỢC 15 PHÚT
+        ========================================================================= */
+        function startTimer() {
+            clearInterval(state.timerInterval);
+            updateTimerDisplay();
+
+            state.timerInterval = setInterval(() => {
+                if (state.isSubmitted) {
+                    clearInterval(state.timerInterval);
+                    return;
+                }
+
+                state.timerSeconds--;
+                updateTimerDisplay();
+
+                if (state.timerSeconds <= 120 && state.timerSeconds > 0) {
+                    document.getElementById('timer-box').classList.add('timer-urgent');
+                }
+
+                if (state.timerSeconds <= 0) {
+                    clearInterval(state.timerInterval);
+                    state.timerSeconds = 0;
+                    updateTimerDisplay();
+                    gradeWorksheet(true);
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(state.timerSeconds / 60);
+            const secs = state.timerSeconds % 60;
+            document.getElementById('timer-display').textContent =
+                `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        /* =========================================================================
+           CÂU 1: KÉO - THẢ & CHẠM CHỌN
+        ========================================================================= */
+        function renderQ1() {
+            const poolEl = document.getElementById('q1-pool');
+            const hwEl = document.getElementById('q1-zone-hardware');
+            const swEl = document.getElementById('q1-zone-software');
+
+            poolEl.innerHTML = '';
+            hwEl.innerHTML = '';
+            swEl.innerHTML = '';
+
+            Q1_ITEMS.forEach(item => {
+                const card = document.createElement('div');
+                const isSelected = state.q1SelectedCardId === item.id;
+                card.id = item.id;
+                card.draggable = !state.isSubmitted;
+                card.className = `draggable-card bg-white border-2 ${isSelected ? 'selected-item' : 'border-slate-300 hover:border-deep-blue'} rounded-xl p-2.5 flex flex-col items-center justify-center text-center shadow-xs gap-1.5`;
+
+                card.innerHTML = `
+                    <div class="pointer-events-none">${item.icon}</div>
+                    <span class="text-xs sm:text-sm font-extrabold text-slate-800 leading-tight pointer-events-none">${item.label}</span>
+                `;
+
+                if (!state.isSubmitted) {
+                    card.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', item.id);
+                        state.q1SelectedCardId = item.id;
+                    });
+                    card.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (state.q1SelectedCardId === item.id) {
+                            state.q1SelectedCardId = null;
+                        } else {
+                            state.q1SelectedCardId = item.id;
+                        }
+                        renderQ1();
+                    });
+                }
+
+                const loc = state.q1Placements[item.id];
+                if (loc === 'hardware') hwEl.appendChild(card);
+                else if (loc === 'software') swEl.appendChild(card);
+                else poolEl.appendChild(card);
+            });
+        }
+
+        function allowDrop(e) {
+            if (state.isSubmitted) return;
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function leaveDrop(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function dropToQ1Zone(e, zone) {
+            if (state.isSubmitted) return;
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            const itemId = e.dataTransfer.getData('text/plain') || state.q1SelectedCardId;
+            if (itemId && state.q1Placements.hasOwnProperty(itemId)) {
+                state.q1Placements[itemId] = zone;
+                state.q1SelectedCardId = null;
+                renderQ1();
+            }
+        }
+
+        function dropToQ1Pool(e) {
+            if (state.isSubmitted) return;
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            const itemId = e.dataTransfer.getData('text/plain') || state.q1SelectedCardId;
+            if (itemId && state.q1Placements.hasOwnProperty(itemId)) {
+                state.q1Placements[itemId] = 'pool';
+                state.q1SelectedCardId = null;
+                renderQ1();
+            }
+        }
+
+        // Hỗ trợ chạm chọn thẻ rồi chạm vào khu vực thả trên điện thoại/tablet
+        document.getElementById('q1-zone-hardware').addEventListener('click', () => {
+            if (!state.isSubmitted && state.q1SelectedCardId) {
+                state.q1Placements[state.q1SelectedCardId] = 'hardware';
+                state.q1SelectedCardId = null;
+                renderQ1();
+            }
+        });
+        document.getElementById('q1-zone-software').addEventListener('click', () => {
+            if (!state.isSubmitted && state.q1SelectedCardId) {
+                state.q1Placements[state.q1SelectedCardId] = 'software';
+                state.q1SelectedCardId = null;
+                renderQ1();
+            }
+        });
+        document.getElementById('q1-pool').addEventListener('click', () => {
+            if (!state.isSubmitted && state.q1SelectedCardId) {
+                state.q1Placements[state.q1SelectedCardId] = 'pool';
+                state.q1SelectedCardId = null;
+                renderQ1();
+            }
+        });
+
+        /* =========================================================================
+           CÂU 2: NỐI CỘT A VÀ CỘT B
+        ========================================================================= */
+        function renderQ2() {
+            const colAEl = document.getElementById('q2-col-a');
+            const colBEl = document.getElementById('q2-col-b');
+            colAEl.innerHTML = '';
+            colBEl.innerHTML = '';
+
+            const connectedBValues = Object.values(state.q2Connections);
+
+            Q2_COL_A.forEach(itemA => {
+                const isSelected = state.q2SelectedA === itemA.id;
+                const isConnected = Boolean(state.q2Connections[itemA.id]);
+                const div = document.createElement('div');
+                div.id = `q2-a-${itemA.id}`;
+                div.className = `match-node p-3 sm:p-4 rounded-2xl border-2 font-extrabold text-xs sm:text-base flex items-center justify-between gap-2 ${
+                    isSelected ? 'active-node' : (isConnected ? 'connected-node' : 'border-slate-300 bg-white hover:border-deep-blue')
+                }`;
+                div.innerHTML = `
+                    <span>${itemA.text}</span>
+                    <span class="w-3.5 h-3.5 rounded-full shrink-0 ${isConnected ? 'bg-deep-blue' : 'bg-slate-300'}"></span>
+                `;
+
+                if (!state.isSubmitted) {
+                    div.addEventListener('click', () => {
+                        // Nếu đã nối mà nhấn lại thì chọn để nối lại (hoặc xóa nối cũ)
+                        if (state.q2SelectedA === itemA.id) {
+                            state.q2SelectedA = null;
+                        } else {
+                            state.q2SelectedA = itemA.id;
+                        }
+                        renderQ2();
+                    });
+                }
+                colAEl.appendChild(div);
+            });
+
+            Q2_COL_B.forEach(itemB => {
+                const isConnected = connectedBValues.includes(itemB.id);
+                const div = document.createElement('div');
+                div.id = `q2-b-${itemB.id}`;
+                div.className = `match-node p-3 sm:p-4 rounded-2xl border-2 font-bold text-xs sm:text-base flex items-center gap-2 ${
+                    isConnected ? 'connected-node' : 'border-slate-300 bg-white hover:border-deep-pink'
+                }`;
+                div.innerHTML = `
+                    <span class="w-3.5 h-3.5 rounded-full shrink-0 ${isConnected ? 'bg-deep-pink' : 'bg-slate-300'}"></span>
+                    <span>${itemB.text}</span>
+                `;
+
+                if (!state.isSubmitted) {
+                    div.addEventListener('click', () => {
+                        if (state.q2SelectedA) {
+                            // Đảm bảo 1-1: nếu itemB đã nối với A khác thì gỡ nối cũ
+                            for (const keyA in state.q2Connections) {
+                                if (state.q2Connections[keyA] === itemB.id) {
+                                    delete state.q2Connections[keyA];
+                                }
+                            }
+                            state.q2Connections[state.q2SelectedA] = itemB.id;
+                            state.q2SelectedA = null;
+                            renderQ2();
+                        } else if (isConnected) {
+                            // Nếu không chọn A trước mà nhấn vào B đã nối -> gỡ đường nối của B
+                            for (const keyA in state.q2Connections) {
+                                if (state.q2Connections[keyA] === itemB.id) {
+                                    delete state.q2Connections[keyA];
+                                }
+                            }
+                            renderQ2();
+                        }
+                    });
+                }
+                colBEl.appendChild(div);
+            });
+
+            requestAnimationFrame(drawQ2Lines);
+        }
+
+        function drawQ2Lines() {
+            const svg = document.getElementById('q2-svg');
+            if (!svg) return;
+            svg.innerHTML = '';
+            const svgRect = svg.getBoundingClientRect();
+            if (svgRect.width === 0) return;
+
+            const lineColors = ['#1E3A8A', '#DB2777', '#D97706', '#059669'];
+
+            Object.entries(state.q2Connections).forEach(([keyA, keyB], idx) => {
+                const elA = document.getElementById(`q2-a-${keyA}`);
+                const elB = document.getElementById(`q2-b-${keyB}`);
+                if (!elA || !elB) return;
+
+                const rectA = elA.getBoundingClientRect();
+                const rectB = elB.getBoundingClientRect();
+
+                const x1 = rectA.right - svgRect.left;
+                const y1 = rectA.top + rectA.height / 2 - svgRect.top;
+                const x2 = rectB.left - svgRect.left;
+                const y2 = rectB.top + rectB.height / 2 - svgRect.top;
+
+                let strokeColor = lineColors[idx % lineColors.length];
+                if (state.isSubmitted) {
+                    strokeColor = (Q2_ANSWERS[keyA] === keyB) ? '#16A34A' : '#DC2626';
+                }
+
+                // Đường cong Bezier mượt mà
+                const cx1 = x1 + (x2 - x1) * 0.45;
+                const cx2 = x2 - (x2 - x1) * 0.45;
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', `M ${x1} ${y1} C ${cx1} ${y1}, ${cx2} ${y2}, ${x2} ${y2}`);
+                path.setAttribute('stroke', strokeColor);
+                path.setAttribute('stroke-width', '4');
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke-linecap', 'round');
+                svg.appendChild(path);
+            });
+        }
+
+        document.getElementById('btn-clear-q2').addEventListener('click', () => {
+            if (state.isSubmitted) return;
+            state.q2Connections = {};
+            state.q2SelectedA = null;
+            renderQ2();
+        });
+
+        window.addEventListener('resize', drawQ2Lines);
+
+        /* =========================================================================
+           CÂU 3: TRẮC NGHIỆM (1 ĐÁP ÁN)
+        ========================================================================= */
+        function renderQ3() {
+            const container = document.getElementById('q3-options');
+            container.innerHTML = '';
+
+            Q3_OPTIONS.forEach(opt => {
+                const isSelected = state.q3Selected === opt.key;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+
+                let styleClass = 'border-slate-300 bg-white hover:border-deep-blue text-slate-800';
+                if (state.isSubmitted) {
+                    if (opt.key === Q3_CORRECT) {
+                        styleClass = 'border-green-600 bg-green-100 text-green-900 ring-2 ring-green-500';
+                    } else if (isSelected && opt.key !== Q3_CORRECT) {
+                        styleClass = 'border-red-600 bg-red-100 text-red-900';
+                    } else {
+                        styleClass = 'border-slate-200 bg-slate-50 text-slate-500';
+                    }
+                } else if (isSelected) {
+                    styleClass = 'border-deep-pink bg-pink-50 text-deep-pink ring-4 ring-pink-200 shadow-md';
+                }
+
+                btn.className = `p-4 rounded-2xl border-3 font-extrabold text-left text-base sm:text-lg transition flex items-center gap-3 cursor-pointer ${styleClass}`;
+                btn.innerHTML = `
+                    <span class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-black text-sm ${
+                        isSelected ? 'bg-deep-pink text-white' : 'bg-slate-200 text-slate-700'
+                    }">${opt.key}</span>
+                    <span>${opt.text.substring(3)}</span>
+                `;
+
+                if (!state.isSubmitted) {
+                    btn.addEventListener('click', () => {
+                        state.q3Selected = opt.key;
+                        renderQ3();
+                    });
+                }
+                container.appendChild(btn);
+            });
+        }
+
+        /* =========================================================================
+           CÂU 4: ĐÚNG / SAI
+        ========================================================================= */
+        function renderQ4() {
+            const container = document.getElementById('q4-statements');
+            container.innerHTML = '';
+
+            Q4_STATEMENTS.forEach(st => {
+                const userAns = state.q4Answers[st.id];
+                const row = document.createElement('div');
+                row.className = 'p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+
+                row.innerHTML = `
+                    <div class="font-bold text-base sm:text-lg text-slate-800">
+                        <span class="text-deep-blue font-black mr-1">Phát biểu ${st.id}:</span> ${st.text}
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                        <button type="button" data-id="${st.id}" data-val="true"
+                            class="q4-btn px-5 py-2.5 rounded-xl font-black text-sm sm:text-base border-2 transition cursor-pointer ${
+                                userAns === true
+                                    ? 'bg-deep-blue text-white border-deep-blue shadow-md'
+                                    : 'bg-white text-slate-700 border-slate-300 hover:border-deep-blue'
+                            }">
+                            ĐÚNG
+                        </button>
+                        <button type="button" data-id="${st.id}" data-val="false"
+                            class="q4-btn px-5 py-2.5 rounded-xl font-black text-sm sm:text-base border-2 transition cursor-pointer ${
+                                userAns === false
+                                    ? 'bg-deep-pink text-white border-deep-pink shadow-md'
+                                    : 'bg-white text-slate-700 border-slate-300 hover:border-deep-pink'
+                            }">
+                            SAI
+                        </button>
+                    </div>
+                `;
+
+                container.appendChild(row);
+            });
+
+            if (!state.isSubmitted) {
+                container.querySelectorAll('.q4-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const id = Number(btn.getAttribute('data-id'));
+                        const val = btn.getAttribute('data-val') === 'true';
+                        state.q4Answers[id] = val;
+                        renderQ4();
+                    });
+                });
+            }
+        }
+
+        /* =========================================================================
+           CÂU 5: ĐỌC HIỂU – ĐIỀN TỪ KHÓA (THÔNG HIỂU)
+        ========================================================================= */
+        function renderQ5() {
+            const bankEl = document.getElementById('q5-word-bank');
+            bankEl.innerHTML = '';
+
+            const usedWordIds = Object.values(state.q5Slots).filter(Boolean);
+
+            Q5_WORDS.forEach(w => {
+                // Nếu thẻ từ khóa đã được đặt vào ô trống thì không hiển thị ở ngân hàng từ nữa
+                if (usedWordIds.includes(w.id)) return;
+
+                const isSelected = state.q5SelectedWordId === w.id;
+                const chip = document.createElement('div');
+                chip.id = `q5-word-${w.id}`;
+                chip.draggable = !state.isSubmitted;
+                chip.className = `draggable-card px-4 py-2 rounded-xl border-2 font-extrabold text-sm sm:text-base shadow-xs ${
+                    isSelected
+                        ? 'selected-item text-deep-pink'
+                        : 'bg-white border-deep-blue text-deep-blue hover:bg-blue-50'
+                }`;
+                chip.textContent = w.text;
+
+                if (!state.isSubmitted) {
+                    chip.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', w.id);
+                        state.q5SelectedWordId = w.id;
+                    });
+                    chip.addEventListener('click', () => {
+                        state.q5SelectedWordId = (state.q5SelectedWordId === w.id) ? null : w.id;
+                        renderQ5();
+                    });
+                }
+
+                bankEl.appendChild(chip);
+            });
+
+            if (bankEl.children.length === 0) {
+                bankEl.innerHTML = `<span class="text-xs sm:text-sm italic text-slate-500 font-semibold">Đã sử dụng hết các thẻ từ khóa. Nhấn vào ô trống trong đoạn văn nếu muốn đổi lại từ.</span>`;
+            }
+
+            // Cập nhật hiển thị 4 ô trống trong đoạn văn
+            [1, 2, 3, 4].forEach(slotNum => {
+                const slotEl = document.getElementById(`blank-${slotNum}`);
+                const wordId = state.q5Slots[slotNum];
+                if (wordId) {
+                    const wordObj = Q5_WORDS.find(item => item.id === wordId);
+                    slotEl.textContent = wordObj ? wordObj.text : '______';
+                    slotEl.classList.add('filled');
+                } else {
+                    slotEl.textContent = '______';
+                    slotEl.classList.remove('filled');
+                }
+            });
+        }
+
+        function dropToQ5Slot(e, slotNum) {
+            if (state.isSubmitted) return;
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            const wordId = e.dataTransfer.getData('text/plain') || state.q5SelectedWordId;
+            if (!wordId) return;
+
+            // Đảm bảo mỗi thẻ từ khóa chỉ dùng 1 lần
+            for (const s in state.q5Slots) {
+                if (state.q5Slots[s] === wordId) {
+                    state.q5Slots[s] = null;
+                }
+            }
+            state.q5Slots[slotNum] = wordId;
+            state.q5SelectedWordId = null;
+            renderQ5();
+        }
+
+        function handleQ5SlotClick(slotNum) {
+            if (state.isSubmitted) return;
+
+            if (state.q5SelectedWordId) {
+                // Đặt từ khóa đang chọn vào ô trống này (thẻ cũ nếu có tự động trở về ngân hàng từ)
+                for (const s in state.q5Slots) {
+                    if (state.q5Slots[s] === state.q5SelectedWordId) {
+                        state.q5Slots[s] = null;
+                    }
+                }
+                state.q5Slots[slotNum] = state.q5SelectedWordId;
+                state.q5SelectedWordId = null;
+                renderQ5();
+            } else if (state.q5Slots[slotNum]) {
+                // Nhấn vào ô đã điền để trả thẻ về ngân hàng từ
+                state.q5Slots[slotNum] = null;
+                renderQ5();
+            }
+        }
+
+        /* =========================================================================
+           HỆ THỐNG CHẤM ĐIỂM TỰ ĐỘNG & QUY TẮC VIỀN XANH / ĐỎ
+        ========================================================================= */
+        document.getElementById('btn-submit').addEventListener('click', () => {
+            gradeWorksheet(false);
+        });
+
+        function formatScoreDisplay(num) {
+            // Làm tròn tối đa 2 chữ số thập phân khi hiển thị, bỏ số 0 thừa
+            return Number(num.toFixed(2)).toString().replace('.', ',');
+        }
+
+        function gradeWorksheet(isTimeout) {
+            if (state.isSubmitted) return;
+            state.isSubmitted = true;
+            clearInterval(state.timerInterval);
+
+            // Tính thời gian hoàn thành
+            const elapsedSeconds = (15 * 60) - state.timerSeconds;
+            const elapsedMins = Math.floor(elapsedSeconds / 60);
+            const elapsedSecs = elapsedSeconds % 60;
+            const timeText = `${elapsedMins} phút ${elapsedSecs} giây`;
+
+            let totalExactScore = 0;
+            let fullyCorrectQuestions = 0;
+
+            // ---------------- CHẤM CÂU 1 (2 điểm - 6 ý, mỗi ý 1/3 điểm) ----------------
+            let q1CorrectCount = 0;
+            Q1_ITEMS.forEach(item => {
+                if (state.q1Placements[item.id] === item.correctZone) {
+                    q1CorrectCount++;
+                }
+            });
+            const q1ScoreExact = q1CorrectCount * (1 / 3);
+            const q1AllCorrect = (q1CorrectCount === 6);
+            totalExactScore += q1ScoreExact;
+            if (q1AllCorrect) fullyCorrectQuestions++;
+
+            applyQuestionResultUI(
+                'q1',
+                q1AllCorrect,
+                q1ScoreExact,
+                2,
+                `
+                <p class="font-extrabold text-deep-blue mb-1">✅ Đáp án đúng Câu 1 (${q1CorrectCount}/6 thẻ đúng):</p>
+                <ul class="list-disc list-inside space-y-1 text-slate-700 font-semibold">
+                    <li><strong>PHẦN CỨNG:</strong> Bàn phím, Chuột, Màn hình, Thân máy.</li>
+                    <li><strong>PHẦN MỀM:</strong> Trò chơi, Phần mềm trình chiếu.</li>
+                </ul>
+                `
+            );
+
+            // ---------------- CHẤM CÂU 2 (2 điểm - 4 cặp, mỗi cặp 0.5 điểm) ----------------
+            let q2CorrectCount = 0;
+            Object.keys(Q2_ANSWERS).forEach(keyA => {
+                if (state.q2Connections[keyA] === Q2_ANSWERS[keyA]) {
+                    q2CorrectCount++;
+                }
+            });
+            const q2ScoreExact = q2CorrectCount * 0.5;
+            const q2AllCorrect = (q2CorrectCount === 4);
+            totalExactScore += q2ScoreExact;
+            if (q2AllCorrect) fullyCorrectQuestions++;
+
+            applyQuestionResultUI(
+                'q2',
+                q2AllCorrect,
+                q2ScoreExact,
+                2,
+                `
+                <p class="font-extrabold text-deep-blue mb-1">✅ Đáp án đúng Câu 2 (${q2CorrectCount}/4 cặp nối đúng):</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-slate-700 font-semibold">
+                    <div>• <strong>1. Phần cứng</strong> – B. Có hình dạng, có thể nhận ra.</div>
+                    <div>• <strong>2. Phần mềm</strong> – D. Không có hình dạng như phần cứng.</div>
+                    <div>• <strong>3. Màn hình</strong> – C. Hiển thị kết quả hoạt động.</div>
+                    <div>• <strong>4. Ứng dụng điện thoại</strong> – A. Có thể thêm hoặc xóa trên điện thoại.</div>
+                </div>
+                `
+            );
+
+            // ---------------- CHẤM CÂU 3 (2 điểm - chọn C) ----------------
+            const q3AllCorrect = (state.q3Selected === Q3_CORRECT);
+            const q3ScoreExact = q3AllCorrect ? 2 : 0;
+            totalExactScore += q3ScoreExact;
+            if (q3AllCorrect) fullyCorrectQuestions++;
+
+            applyQuestionResultUI(
+                'q3',
+                q3AllCorrect,
+                q3ScoreExact,
+                2,
+                `
+                <p class="font-extrabold text-deep-blue mb-1">✅ Đáp án đúng: <span class="text-green-700">C</span></p>
+                <p class="text-slate-700 font-semibold"><strong>Giải thích:</strong> ${Q3_EXPLANATION}</p>
+                `
+            );
+
+            // ---------------- CHẤM CÂU 4 (2 điểm - 4 phát biểu, mỗi ý 0.5 điểm) ----------------
+            let q4CorrectCount = 0;
+            Q4_STATEMENTS.forEach(st => {
+                if (state.q4Answers[st.id] === st.correct) {
+                    q4CorrectCount++;
+                }
+            });
+            const q4ScoreExact = q4CorrectCount * 0.5;
+            const q4AllCorrect = (q4CorrectCount === 4);
+            totalExactScore += q4ScoreExact;
+            if (q4AllCorrect) fullyCorrectQuestions++;
+
+            applyQuestionResultUI(
+                'q4',
+                q4AllCorrect,
+                q4ScoreExact,
+                2,
+                `
+                <p class="font-extrabold text-deep-blue mb-1">✅ Đáp án đúng Câu 4 (${q4CorrectCount}/4 phát biểu đúng):</p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-slate-700 font-bold">
+                    <div>1. ĐÚNG</div>
+                    <div>2. SAI</div>
+                    <div>3. ĐÚNG</div>
+                    <div>4. SAI</div>
+                </div>
+                `
+            );
+
+            // ---------------- CHẤM CÂU 5 (2 điểm - 4 ô trống, mỗi ô 0.5 điểm) ----------------
+            let q5CorrectCount = 0;
+            [1, 2, 3, 4].forEach(slotNum => {
+                const chosenWordId = state.q5Slots[slotNum];
+                if (chosenWordId) {
+                    const wordObj = Q5_WORDS.find(w => w.id === chosenWordId);
+                    if (wordObj && wordObj.text === Q5_ANSWERS[slotNum]) {
+                        q5CorrectCount++;
+                    }
+                }
+            });
+            const q5ScoreExact = q5CorrectCount * 0.5;
+            const q5AllCorrect = (q5CorrectCount === 4);
+            totalExactScore += q5ScoreExact;
+            if (q5AllCorrect) fullyCorrectQuestions++;
+
+            applyQuestionResultUI(
+                'q5',
+                q5AllCorrect,
+                q5ScoreExact,
+                2,
+                `
+                <p class="font-extrabold text-deep-blue mb-1">✅ Đáp án đúng Câu 5 (${q5CorrectCount}/4 ô trống đúng):</p>
+                <p class="text-slate-700 font-semibold leading-relaxed">
+                    Máy tính gồm phần cứng và phần mềm. Phần cứng là những bộ phận có <strong class="text-green-700 underline">(1) hình dạng</strong> mà em có thể nhận ra, chẳng hạn như bàn phím, chuột và màn hình. Phần mềm không có <strong class="text-green-700 underline">(2) hình dạng</strong> như phần cứng. Các máy tính có thể được cài đặt những <strong class="text-green-700 underline">(3) phần mềm</strong> khác nhau. Khi muốn sử dụng thêm trò chơi trên máy tính, em có thể nhờ người lớn <strong class="text-green-700 underline">(4) cài đặt</strong> trò chơi phù hợp.
+                </p>
+                `
+            );
+
+            // Re-render lại để khóa thao tác và tô màu đường nối / lựa chọn
+            renderQ1();
+            renderQ2();
+            renderQ3();
+            renderQ4();
+            renderQ5();
+
+            // Hiển thị bảng kết quả học tập
+            const finalScore = Math.min(10, Math.max(0, totalExactScore));
+            const percentage = (finalScore / 10) * 100;
+
+            let feedbackText = '';
+            let trophyIcon = '🏆';
+            if (percentage >= 90) {
+                feedbackText = 'Xuất sắc!';
+                trophyIcon = '🏆';
+            } else if (percentage >= 70) {
+                feedbackText = 'Tốt!';
+                trophyIcon = '🌟';
+            } else if (percentage >= 50) {
+                feedbackText = 'Cần luyện thêm!';
+                trophyIcon = '💪';
+            } else {
+                feedbackText = 'Xem lại bài nhé!';
+                trophyIcon = '📖';
+            }
+
+            document.getElementById('res-name').textContent = state.studentName;
+            document.getElementById('res-class').textContent = state.studentClass;
+            document.getElementById('res-time').textContent = timeText;
+            document.getElementById('res-score').textContent = formatScoreDisplay(finalScore);
+            document.getElementById('res-correct-count').textContent = fullyCorrectQuestions;
+            document.getElementById('res-feedback').textContent = feedbackText;
+            document.getElementById('res-trophy').textContent = trophyIcon;
+
+            document.getElementById('submit-section').classList.add('hidden');
+            document.getElementById('result-dashboard').classList.remove('hidden');
+
+            // Gửi kết quả sang Google Sheet
+            state.lastPayload = {
+                timestamp: new Date().toLocaleString('vi-VN'),
+                studentName: state.studentName,
+                studentClass: state.studentClass,
+                worksheetTitle: "EM KHÁM PHÁ PHẦN CỨNG VÀ PHẦN MỀM MÁY TÍNH",
+                totalScore: Number(finalScore.toFixed(2)),
+                correctQuestions: `${fullyCorrectQuestions}/5`,
+                q1Score: Number(q1ScoreExact.toFixed(2)),
+                q2Score: Number(q2ScoreExact.toFixed(2)),
+                q3Score: Number(q3ScoreExact.toFixed(2)),
+                q4Score: Number(q4ScoreExact.toFixed(2)),
+                q5Score: Number(q5ScoreExact.toFixed(2)),
+                completionTime: timeText,
+                feedback: feedbackText
+            };
+            sendResultToGoogleSheet(state.lastPayload);
+
+            if (isTimeout) {
+                document.getElementById('timeout-modal').classList.remove('hidden');
+            } else {
+                document.getElementById('result-dashboard').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function retrySendToGoogleSheet() {
+            if (state.lastPayload) {
+                sendResultToGoogleSheet(state.lastPayload);
+            }
+        }
+
+        async function sendResultToGoogleSheet(payload) {
+            const statusEl = document.getElementById('sheets-sync-status');
+            const retryBtn = document.getElementById('btn-resync-sheets');
+            statusEl.classList.remove('hidden');
+            retryBtn.classList.add('hidden');
+
+            if (!GOOGLE_SHEET_WEBAPP_URL || GOOGLE_SHEET_WEBAPP_URL.trim() === "") {
+                statusEl.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 bg-yellow-100 text-yellow-800 border border-yellow-300";
+                statusEl.innerHTML = `<span>⚠️ Chưa gắn link Google Sheet Web App (Kết quả đang hiển thị tạm thời trên màn hình).</span>`;
+                return;
+            }
+
+            statusEl.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 bg-blue-100 text-deep-blue border border-blue-300";
+            statusEl.innerHTML = `<span>⏳ Đang lưu kết quả bài làm của em lên Google Sheet...</span>`;
+
+            try {
+                await fetch(GOOGLE_SHEET_WEBAPP_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: {
+                        "Content-Type": "text/plain;charset=utf-8"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                statusEl.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 bg-green-100 text-green-800 border border-green-300";
+                statusEl.innerHTML = `<span>✅ Đã lưu kết quả của em vào bảng điểm của thầy cô!</span>`;
+            } catch (error) {
+                statusEl.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 bg-red-100 text-red-700 border border-red-300";
+                statusEl.innerHTML = `<span>❌ Không thể kết nối Google Sheet.</span>`;
+                retryBtn.classList.remove('hidden');
+            }
+        }
+
+        function applyQuestionResultUI(qPrefix, isAllCorrect, exactScore, maxScore, feedbackHTML) {
+            const card = document.getElementById(`${qPrefix}-card`);
+            const badge = document.getElementById(`${qPrefix}-score-badge`);
+            const fb = document.getElementById(`${qPrefix}-feedback`);
+
+            card.classList.remove('card-neutral');
+            if (isAllCorrect) {
+                card.classList.add('card-correct');
+                badge.className = 'px-3.5 py-1 rounded-full text-sm font-black bg-green-600 text-white shadow-xs';
+                badge.textContent = `Đúng hoàn toàn • ${formatScoreDisplay(exactScore)}/${maxScore} điểm`;
+            } else {
+                card.classList.add('card-incorrect');
+                badge.className = 'px-3.5 py-1 rounded-full text-sm font-black bg-red-600 text-white shadow-xs';
+                badge.textContent = `Chưa đúng hết • ${formatScoreDisplay(exactScore)}/${maxScore} điểm`;
+            }
+
+            badge.classList.remove('hidden');
+            fb.innerHTML = feedbackHTML;
+            fb.classList.remove('hidden');
+        }
+
+        /* =========================================================================
+           XEM LẠI BÀI & LÀM LẠI BÀI
+        ========================================================================= */
+        document.getElementById('btn-review').addEventListener('click', () => {
+            document.getElementById('q1-card').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        document.getElementById('btn-retry').addEventListener('click', () => {
+            document.getElementById('retry-modal').classList.remove('hidden');
+        });
+
+        document.getElementById('btn-cancel-retry').addEventListener('click', () => {
+            document.getElementById('retry-modal').classList.add('hidden');
+        });
+
+        document.getElementById('btn-confirm-retry').addEventListener('click', () => {
+            document.getElementById('retry-modal').classList.add('hidden');
+            initWorksheet();
+        });
+
+        document.getElementById('btn-close-timeout').addEventListener('click', () => {
+            document.getElementById('timeout-modal').classList.add('hidden');
+            document.getElementById('result-dashboard').scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
